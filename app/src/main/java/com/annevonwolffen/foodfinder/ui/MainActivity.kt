@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -20,8 +21,6 @@ import androidx.compose.ui.Modifier
 import com.annevonwolffen.foodfinder.ui.theme.FoodFinderTheme
 import kotlinx.coroutines.launch
 
-@ExperimentalFoundationApi
-@ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,50 +30,54 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@ExperimentalMaterial3Api
-@ExperimentalFoundationApi
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun FoodFinderApp() {
     FoodFinderTheme {
         val pagerState = rememberPagerState()
-        val scope = rememberCoroutineScope()
         Scaffold(
             topBar = { SearchTopBar() },
-            bottomBar = {
-                TabRow(selectedTabIndex = pagerState.currentPage) {
-                    Tab(
-                        selected = pagerState.currentPage == 0,
-                        text = { Text(text = "Recipes") },
-                        onClick = {
-                            scope.launch {
-                                pagerState.animateScrollToPage(0)
-                            }
-                        }
-                    )
-                    Tab(
-                        selected = pagerState.currentPage == 0,
-                        text = { Text(text = "Food") },
-                        onClick = {
-                            scope.launch {
-                                pagerState.animateScrollToPage(0)
-                            }
-                        }
-                    )
-                }
-            }
+            bottomBar = { Tabs(pagerState = pagerState) }
         ) { padding ->
-            HorizontalPager(
-                pageCount = 2,
-                state = pagerState,
-                modifier = Modifier.padding(padding)
-            ) { page ->
-                when (page) {
-                    0 -> SearchRecipesScreen()
-                    1 -> SearchFoodScreen()
-                }
-
-            }
+            SearchScreenPager(pagerState = pagerState, modifier = Modifier.padding(padding))
         }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun Tabs(
+    pagerState: PagerState,
+    modifier: Modifier = Modifier
+) {
+    val scope = rememberCoroutineScope()
+    TabRow(selectedTabIndex = pagerState.currentPage, modifier = modifier) {
+        SearchScreen.values().forEach { screen ->
+            Tab(
+                selected = pagerState.currentPage == screen.ordinal,
+                text = { Text(text = screen.name) },
+                onClick = {
+                    scope.launch {
+                        pagerState.animateScrollToPage(screen.ordinal)
+                    }
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SearchScreenPager(
+    pagerState: PagerState,
+    modifier: Modifier = Modifier
+) {
+    HorizontalPager(
+        pageCount = SearchScreen.values().size,
+        state = pagerState,
+        modifier = modifier
+    ) { page ->
+        SearchScreen.values()[page].searchContentScreen()
     }
 }
 
