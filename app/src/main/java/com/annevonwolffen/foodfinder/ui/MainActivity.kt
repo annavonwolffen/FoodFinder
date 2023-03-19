@@ -4,20 +4,32 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.annevonwolffen.foodfinder.ui.profile.ProfileScreen
+import com.annevonwolffen.foodfinder.ui.recipes.RecipesScreen
 import com.annevonwolffen.foodfinder.ui.theme.FoodFinderTheme
 import kotlinx.coroutines.launch
 
@@ -30,72 +42,68 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodFinderApp() {
     FoodFinderTheme {
-        val pagerState = rememberPagerState()
-        Scaffold(
-            topBar = { SearchTopBar() },
-            bottomBar = { Tabs(pagerState = pagerState) }
-        ) { padding ->
-            SearchScreenPager(pagerState = pagerState, modifier = Modifier.padding(padding))
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun Tabs(
-    pagerState: PagerState,
-    modifier: Modifier = Modifier
-) {
-    val scope = rememberCoroutineScope()
-    TabRow(selectedTabIndex = pagerState.currentPage, modifier = modifier) {
-        SearchScreen.values().forEach { screen ->
-            Tab(
-                selected = pagerState.currentPage == screen.ordinal,
-                text = { Text(text = screen.name) },
-                onClick = {
-                    scope.launch {
-                        pagerState.animateScrollToPage(screen.ordinal)
-                    }
-                }
+        val navController = rememberNavController()
+        Scaffold { paddingValues ->
+            FoodFinderNavHost(
+                navController = navController,
+                modifier = Modifier.padding(paddingValues)
             )
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SearchScreenPager(
-    pagerState: PagerState,
+fun FoodFinderNavHost(
+    navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    HorizontalPager(
-        pageCount = SearchScreen.values().size,
-        state = pagerState,
+    NavHost(
+        navController = navController,
+        startDestination = MainDestination.route,
         modifier = modifier
-    ) { page ->
-        SearchScreen.values()[page].searchContentScreen()
+    ) {
+        composable(route = MainDestination.route) {
+            MainScreen(
+                onStartButtonClick = {
+                    navController.navigate(it.route)
+                }
+            )
+        }
+        composable(route = StartDestinations.Recipes.route) {
+            RecipesScreen()
+        }
+        composable(route = StartDestinations.Profile.route) {
+            ProfileScreen()
+        }
     }
 }
 
 @Composable
-fun SearchRecipesScreen() {
+fun MainScreen(
+    onStartButtonClick: (StartDestinations) -> Unit
+) {
     Box(
-        Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = "Recipes")
-    }
-}
-
-@Composable
-fun SearchFoodScreen() {
-    Box(
-        Modifier.fillMaxSize()
-    ) {
-        Text(text = "Food")
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(
+                space = 32.dp,
+                alignment = Alignment.CenterHorizontally
+            )
+        ) {
+            StartDestinations.values().forEach {
+                Button(onClick = {
+                    onStartButtonClick(it)
+                }) {
+                    Text(text = it.name)
+                }
+            }
+        }
     }
 }
 
