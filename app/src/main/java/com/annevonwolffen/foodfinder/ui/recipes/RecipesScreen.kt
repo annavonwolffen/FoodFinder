@@ -22,10 +22,9 @@ import kotlinx.coroutines.launch
 fun RecipesScreen() {
     val pagerState = rememberPagerState()
     Scaffold(
-        topBar = { SearchTopBar() },
         bottomBar = { Tabs(pagerState = pagerState) }
     ) { padding ->
-        SearchScreenPager(pagerState = pagerState, modifier = Modifier.padding(padding))
+        RecipesScreenPager(pagerState = pagerState, modifier = Modifier.padding(padding))
     }
 }
 
@@ -53,7 +52,7 @@ fun Tabs(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SearchScreenPager(
+fun RecipesScreenPager(
     pagerState: PagerState,
     modifier: Modifier = Modifier
 ) {
@@ -63,23 +62,5 @@ fun SearchScreenPager(
         modifier = modifier
     ) { page ->
         RecipesScreens.values()[page].searchContentScreen()
-    }
-}
-
-@Composable
-fun SearchRecipesScreen() {
-    Box(
-        Modifier.fillMaxSize()
-    ) {
-        Text(text = "Recipes Search")
-    }
-}
-
-@Composable
-fun FavoritesRecipesScreen() {
-    Box(
-        Modifier.fillMaxSize()
-    ) {
-        Text(text = "Favorites")
     }
 }
