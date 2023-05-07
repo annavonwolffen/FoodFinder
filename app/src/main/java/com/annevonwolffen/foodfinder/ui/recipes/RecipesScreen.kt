@@ -1,8 +1,6 @@
 package com.annevonwolffen.foodfinder.ui.recipes
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -15,9 +13,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.annevonwolffen.foodfinder.ui.recipes.RecipesScreens.Favorites
+import com.annevonwolffen.foodfinder.ui.recipes.RecipesScreens.RecipesSearch
+import com.annevonwolffen.foodfinder.ui.recipes.favorites.RecipesFavoritesScreen
+import com.annevonwolffen.foodfinder.ui.recipes.search.RecipesSearchScreen
+import com.annevonwolffen.foodfinder.ui.recipes.search.RecipesSearchViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RecipesScreen() {
     val pagerState = rememberPagerState()
@@ -61,6 +65,14 @@ fun RecipesScreenPager(
         state = pagerState,
         modifier = modifier
     ) { page ->
-        RecipesScreens.values()[page].searchContentScreen()
+        when (RecipesScreens.values()[page]) {
+            RecipesSearch -> {
+                val viewModel: RecipesSearchViewModel = hiltViewModel()
+                RecipesSearchScreen(viewModel = viewModel)
+            }
+            Favorites -> {
+                RecipesFavoritesScreen()
+            }
+        }
     }
 }

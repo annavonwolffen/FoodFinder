@@ -1,7 +1,10 @@
 package com.annevonwolffen.foodfinder.ui.recipes.search
 
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -13,11 +16,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun RecipesSearchScreen(
-    viewModel: RecipesSearchViewModel = viewModel()
+    viewModel: RecipesSearchViewModel
 ) {
+    Log.d("RecipesSearchScreen", "viewModel: $viewModel")
     val searchState by viewModel.searchState.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -25,12 +37,15 @@ fun RecipesSearchScreen(
             SearchTopBar(
                 modifier = Modifier.fillMaxWidth(),
                 query = searchState.query,
-                onQueryChanged = { query -> viewModel.onQueryChanged(query) }
-
+                onQueryChanged = { query -> viewModel.onEvent(UIEvent.QueryChanged(query)) },
+                onSearch = { query -> viewModel.onEvent(UIEvent.Search(query)) }
             )
         }
     ) { padding ->
-        FoundContent(Modifier.padding(padding))
+        FoundContent(
+            modifier = Modifier.padding(padding),
+            foundRecipes = searchState.foundContent
+        )
     }
 }
 
@@ -58,6 +73,20 @@ fun SearchTopBar(
 
 @Composable
 fun FoundContent(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    foundRecipes: List<String>
 ) {
+    val listState = rememberLazyListState()
+    LazyColumn(
+        modifier = modifier,
+        state = listState
+    ) {
+        items(foundRecipes) { recipe ->
+
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = recipe
+            )
+        }
+    }
 }
