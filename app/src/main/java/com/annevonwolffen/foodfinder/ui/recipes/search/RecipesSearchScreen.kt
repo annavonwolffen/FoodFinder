@@ -1,62 +1,67 @@
 package com.annevonwolffen.foodfinder.ui.recipes.search
 
-import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 
 @Composable
 fun RecipesSearchScreen(
     viewModel: RecipesSearchViewModel
 ) {
-    Log.d("RecipesSearchScreen", "viewModel: $viewModel")
     val searchState by viewModel.searchState.collectAsStateWithLifecycle()
 
-    Scaffold(
-        topBar = {
+    Scaffold { padding ->
+        Column {
             SearchTopBar(
                 modifier = Modifier.fillMaxWidth(),
                 query = searchState.query,
                 onQueryChanged = { query -> viewModel.onEvent(UIEvent.QueryChanged(query)) },
-                onSearch = { query -> viewModel.onEvent(UIEvent.Search(query)) }
+                onSearch = { query -> viewModel.onEvent(UIEvent.Search(query)) },
+                enabled = !searchState.showProgressBar
+            )
+            FoundContent(
+                modifier = Modifier.padding(padding),
+                foundRecipes = searchState.foundContent
             )
         }
-    ) { padding ->
-        FoundContent(
-            modifier = Modifier.padding(padding),
-            foundRecipes = searchState.foundContent
-        )
+
+        if (searchState.showProgressBar) {
+            LoadingScreen()
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchTopBar(
+private fun SearchTopBar(
     modifier: Modifier = Modifier,
     query: String = "",
     onQueryChanged: (String) -> Unit,
     onSearch: (String) -> Unit = {},
     onActiveChange: (Boolean) -> Unit = {},
+    enabled: Boolean = true
 ) {
     SearchBar(
         modifier = modifier,
@@ -66,13 +71,29 @@ fun SearchTopBar(
         active = false,
         onActiveChange = onActiveChange,
         trailingIcon = {
-            Icon(Icons.Default.Search, contentDescription = null)
-        }
+            IconButton(onClick = { onSearch(query) }) {
+                Icon(Icons.Default.Search, contentDescription = null)
+            }
+        },
+        enabled = enabled
     ) {}
 }
 
 @Composable
-fun FoundContent(
+private fun LoadingScreen(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Gray.copy(alpha = 0.3f))
+            .pointerInput(Unit) {},
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun FoundContent(
     modifier: Modifier = Modifier,
     foundRecipes: List<String>
 ) {

@@ -33,7 +33,6 @@ class RecipesSearchViewModel @Inject constructor(
         viewModelScope.launch {
             _searchState.value = _searchState.value.copy(
                 showProgressBar = true,
-                foundContent = emptyList(),
                 showSearchError = false
             )
             val recipes = recipesSearchInteractor.searchRecipes(query)
